@@ -8,7 +8,7 @@ Function_to_Ip = dict()
 IP_to_Function = dict()
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
-	def do_GET(self):
+	def do_POST(self):
 		global Function_to_Ip
 		global IP_to_Function
 

@@ -5,16 +5,21 @@ from SocketServer import ForkingMixIn
 import server
 import sys
 import httplib
+import traceback
 
 class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
-	def do_GET(self):
+	def do_POST(self):
 		print "New Conection"
 		data=self.rfile.read(int(self.headers["Content-Length"]))
 		print "Data received",data
 		x = json.loads(data)
 		if self.headers["Function"] in dir(server):
-			res = getattr(server, self.headers["Function"])(**x)
-			self.send_response(200)
+			try:
+				res = getattr(server, self.headers["Function"])(**x)
+				self.send_response(200)
+			except Exception as e:
+				res = traceback.format_exc().splitlines()[-1]
+				self.send_response(400)
 		else:
 			res = "Function not available"
 			self.send_response(404)
@@ -23,6 +28,7 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		self.end_headers()
 		self.wfile.write(data)
 		print "Data sent: ",data
+		return
 		
 class ThreadedHTTPServer(ForkingMixIn, HTTPServer):
 	pass
@@ -31,19 +37,22 @@ TCP_IP = "0.0.0.0"
 TCP_PORT = 12346
 
 
-Name_server_ip = sys.argv[1]
-Name_server_port = 64321
-conn = httplib.HTTPConnection(Name_server_ip,Name_server_port)
-
 publish_function_list=['double']
 all_function_list=['double', 'abs']
 
-data=json.dumps(publish_function_list)
-conn.request("GET", "",data,{"Content-Length": str(len(data)),"Content-type":"application/json","Function":"register"})
-response = json.loads(conn.getresponse().read())
-if response=="ACK":
-	print "Functions Registered and Server Starting"
-conn.close()
+if len(sys.argv) == 2:
+	Name_server_ip = sys.argv[1]
+	Name_server_port = 64321
+	conn = httplib.HTTPConnection(Name_server_ip,Name_server_port)
+
+	data=json.dumps(publish_function_list)
+	conn.request("POST", "",data,{"Content-Length": str(len(data)),"Content-type":"application/json","Function":"register"})
+	response = json.loads(conn.getresponse().read())
+	if response=="ACK":
+		print "Functions Registered and Server Starting"
+	conn.close()
+else:
+	print "Starting without name server"
 
 S = ThreadedHTTPServer((TCP_IP,TCP_PORT),ThreadedHTTPRequestHandler)
 try:
@@ -51,10 +60,11 @@ try:
 except KeyboardInterrupt:
 	pass
 
-conn.request("GET", "",data,{"Content-Length": str(len(data)),"Content-type":"application/json","Function":"deregister"})
-response = json.loads(conn.getresponse().read())
-if response=="ACK":
-	print "Functions Deregistered and Server Closing"
-conn.close()
+if len(sys.argv) == 2:
+	conn.request("POST", "",data,{"Content-Length": str(len(data)),"Content-type":"application/json","Function":"deregister"})
+	response = json.loads(conn.getresponse().read())
+	if response=="ACK":
+		print "Functions Deregistered and Server Closing"
+	conn.close()
 S.server_close()
 

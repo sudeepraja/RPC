@@ -29,18 +29,22 @@ input_file = file(sys.argv[1])
 functions = [line.strip() for line in input_file.readlines()]
 
 client_stub_file = open("client_stub.py","w")
-print >>client_stub_file, "import httplib"
-print >>client_stub_file, "import json"
-print >>client_stub_file, "import sys"
-print >>client_stub_file, "name_server = None"
-print >>client_stub_file, "\n\n"
 
 print >>client_stub_file, """
+import httplib
+import json
+import sys
+import traceback
+name_server = None
+
 def ask_name_server(x):
+	if name_server == None:
+		print "Name server not specified"
+		sys.exit(0)
 	print "Asking Name Server for",x
 	conn = httplib.HTTPConnection(name_server,64321)
 	data=json.dumps(x)
-	conn.request("GET", "",data,{"Content-Length": str(len(data)),"Content-type":"application/json","Function":"get_ip"})
+	conn.request("POST", "",data,{"Content-Length": str(len(data)),"Content-type":"application/json","Function":"get_ip"})
 	response = conn.getresponse().read()
 	ip = json.loads(response)
 	conn.close()
@@ -49,9 +53,20 @@ def ask_name_server(x):
 
 def make_rpc_call(data,ip,func_name):
 	conn = httplib.HTTPConnection(ip,12346)
-	conn.request("GET", "",data,{"Content-Length": str(len(data)),"Content-type":"application/json","Function":func_name})
-	response = conn.getresponse().read()
-	answer = json.loads(response)
+	conn.request("POST", "",data,{"Content-Length": str(len(data)),"Content-type":"application/json","Function":func_name})
+	response = conn.getresponse()
+	status = response.status
+	if status == 200:
+		answer = json.loads(response.read())
+	elif status == 404:
+		print "Function",func_name,"not found at ",ip
+		conn.close()
+		sys.exit(0)
+	elif status == 400:
+		print traceback.format_stack()
+		print json.loads(response.read())
+		conn.close()
+		sys.exit(0)
 	conn.close()
 	return answer
 """
@@ -77,16 +92,21 @@ from SocketServer import ForkingMixIn
 import server
 import sys
 import httplib
+import traceback
 
 class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
-	def do_GET(self):
+	def do_POST(self):
 		print "New Conection"
 		data=self.rfile.read(int(self.headers["Content-Length"]))
 		print "Data received",data
 		x = json.loads(data)
 		if self.headers["Function"] in dir(server):
-			res = getattr(server, self.headers["Function"])(**x)
-			self.send_response(200)
+			try:
+				res = getattr(server, self.headers["Function"])(**x)
+				self.send_response(200)
+			except Exception as e:
+				res = traceback.format_exc().splitlines()[-1]
+				self.send_response(400)
 		else:
 			res = "Function not available"
 			self.send_response(404)
@@ -95,6 +115,7 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		self.end_headers()
 		self.wfile.write(data)
 		print "Data sent: ",data
+		return
 		
 class ThreadedHTTPServer(ForkingMixIn, HTTPServer):
 	pass
@@ -102,22 +123,25 @@ class ThreadedHTTPServer(ForkingMixIn, HTTPServer):
 TCP_IP = "0.0.0.0"
 TCP_PORT = 12346
 
-
-Name_server_ip = sys.argv[1]
-Name_server_port = 64321
-conn = httplib.HTTPConnection(Name_server_ip,Name_server_port)
 """
 
 print >>server_stub_file,"publish_function_list=["+", ".join(publish_function_names)+"]"
 print >>server_stub_file,"all_function_list=["+", ".join(all_function_names)+"]"
 
 print >>server_stub_file,"""
-data=json.dumps(publish_function_list)
-conn.request("GET", "",data,{"Content-Length": str(len(data)),"Content-type":"application/json","Function":"register"})
-response = json.loads(conn.getresponse().read())
-if response=="ACK":
-	print "Functions Registered and Server Starting"
-conn.close()
+if len(sys.argv) == 2:
+	Name_server_ip = sys.argv[1]
+	Name_server_port = 64321
+	conn = httplib.HTTPConnection(Name_server_ip,Name_server_port)
+
+	data=json.dumps(publish_function_list)
+	conn.request("POST", "",data,{"Content-Length": str(len(data)),"Content-type":"application/json","Function":"register"})
+	response = json.loads(conn.getresponse().read())
+	if response=="ACK":
+		print "Functions Registered and Server Starting"
+	conn.close()
+else:
+	print "Starting without name server"
 
 S = ThreadedHTTPServer((TCP_IP,TCP_PORT),ThreadedHTTPRequestHandler)
 try:
@@ -125,11 +149,12 @@ try:
 except KeyboardInterrupt:
 	pass
 
-conn.request("GET", "",data,{"Content-Length": str(len(data)),"Content-type":"application/json","Function":"deregister"})
-response = json.loads(conn.getresponse().read())
-if response=="ACK":
-	print "Functions Deregistered and Server Closing"
-conn.close()
+if len(sys.argv) == 2:
+	conn.request("POST", "",data,{"Content-Length": str(len(data)),"Content-type":"application/json","Function":"deregister"})
+	response = json.loads(conn.getresponse().read())
+	if response=="ACK":
+		print "Functions Deregistered and Server Closing"
+	conn.close()
 S.server_close()
 """
 server_stub_file.close()
@@ -149,7 +174,8 @@ client_file = open("client.py","w")
 print >>client_file,"""
 import client_stub
 import sys
-client_stub.name_server = sys.argv[1]
+if len(sys.argv) == 2:
+	client_stub.name_server = sys.argv[1]
 """
 
 client_file.close()
