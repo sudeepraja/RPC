@@ -45,8 +45,14 @@ def ask_name_server(x):
 	conn = httplib.HTTPConnection(name_server,64321)
 	data=json.dumps(x)
 	conn.request("POST", "",data,{"Content-Length": str(len(data)),"Content-type":"application/json","Function":"get_ip"})
-	response = conn.getresponse().read()
-	ip = json.loads(response)
+	response = conn.getresponse()
+	status = response.status
+	if status == 200:
+		ip = json.loads(response.read())
+	elif status == 404:
+		print "Function",x,"not found at "
+		conn.close()
+		sys.exit(0)
 	conn.close()
 	print "Function is at",ip
 	return ip
