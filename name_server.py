@@ -38,10 +38,12 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 			print "Where is",x
 			if x in Function_to_Ip:
 				data=Function_to_Ip[x]
+				print x,"is at",data
+				self.send_response(200)
 			else:
 				data = "Not Found"
-			print x,"is at",data
-			self.send_response(404)
+				print x,"is not found"
+				self.send_response(404)
 
 		data=json.dumps(data)
 		self.send_header('Content-Length',str(len(data)))
