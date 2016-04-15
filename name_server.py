@@ -24,6 +24,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 			for f in x:
 				Function_to_Ip[f]=self.client_address[0]
 			data="ACK"
+			self.send_response(200)
 			
 		elif function == "deregister":
 			print "Deregistering", self.client_address[0],x
@@ -31,14 +32,18 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 			for f in x:
 				Function_to_Ip.pop(f,None)
 			data="ACK"
+			self.send_response(200)
 
 		elif function =="get_ip":
 			print "Where is",x
-			data=Function_to_Ip[x]
+			if x in Function_to_Ip:
+				data=Function_to_Ip[x]
+			else:
+				data = "Not Found"
 			print x,"is at",data
+			self.send_response(404)
 
 		data=json.dumps(data)
-		self.send_response(200)
 		self.send_header('Content-Length',str(len(data)))
 		self.end_headers()
 		self.wfile.write(data)
