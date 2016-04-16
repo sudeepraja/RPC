@@ -5,7 +5,7 @@ import fcntl
 import random
 import time
 prev_ip = sys.argv[1]
-system_number = sys.argv[2]
+system_number = int(sys.argv[2])
 
 K=100
 state = 70%K
