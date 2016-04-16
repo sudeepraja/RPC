@@ -3,11 +3,12 @@ import client_stub
 import sys
 import fcntl
 import random
+import time
 prev_ip = sys.argv[1]
 system_number = sys.argv[2]
 
 K=100
-state = random.randint(0,100)%K
+state = 70%K
 
 def obtain_lock():
 	x = open('state', 'r+')
@@ -15,23 +16,27 @@ def obtain_lock():
 	return x
 
 def release_lock(x):
-	fcntl.flock(x,fcntl.LOCK_U)
+	fcntl.flock(x,fcntl.LOCK_UN)
 	x.close()
 
 
-x=obtain_lock()
+x = open('state', 'w')
 x.write(str(state))
-release_lock(x)
+x.close()
 
 while True:
-	predessor_state = client_stub.get_value()
+	time.sleep(5)
+	predessor_state = client_stub.get_value(prev_ip)
 	x=obtain_lock()
 	state = int(x.read().strip())
+	print state, predessor_state
 	if system_number == 0:
 		if state == predessor_state:
+			print "Privilege"
 			state = (state +1)%K
 	else:
 		if state != predessor_state:
+			print "Privilege"
 			state = predessor_state
 	x.seek(0)
 	x.write(str(state))

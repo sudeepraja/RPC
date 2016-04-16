@@ -5,11 +5,13 @@ def obtain_lock():
 	return x
 
 def release_lock(x):
-	fcntl.flock(x,fcntl.LOCK_U)
+	fcntl.flock(x,fcntl.LOCK_UN)
 	x.close()
 
 def get_value():
 	x=obtain_lock()
-	state = int(x.read().strip()
+	state = int(x.read().strip())
 	release_lock(x)
 	return state
+
+
