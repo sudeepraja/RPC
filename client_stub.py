@@ -44,27 +44,9 @@ def make_rpc_call(data,ip,func_name):
     conn.close()
     return answer
 
-def f1( p1, p2, ip=None ):
-	if ip==None:
-		ip=ask_name_server("f1")
-	data=json.dumps({'p1':p1, 'p2':p2})
-	return make_rpc_call(data,ip,"f1")
-
-
-
-def f2( p1, p2, ip=None ):
-	if ip==None:
-		ip=ask_name_server("f2")
-	data=json.dumps({'p1':p1, 'p2':p2})
-	return make_rpc_call(data,ip,"f2")
-
-
-
-def f3( p1, p2, ip=None ):
-	if ip==None:
-		ip=ask_name_server("f3")
-	data=json.dumps({'p1':p1, 'p2':p2})
-	return make_rpc_call(data,ip,"f3")
+def get_value(  ip):
+	data=json.dumps('')
+	return make_rpc_call(data,ip,"get_value")
 
 
 

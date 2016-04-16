@@ -1,16 +1,45 @@
 
 import client_stub
 import sys
-if len(sys.argv) == 2:
-	client_stub.name_server = sys.argv[1]
+import fcntl
+import random
+prev_ip = sys.argv[1]
+system_number = sys.argv[2]
 
-print client_stub.f1(3,4)
-print client_stub.f2(3,4)
-print client_stub.f3(3,4)
-print client_stub.g1(3,4,5)
-print client_stub.g2(3,4,5)
-print client_stub.g3(3,4,5)
-print client_stub.h1()
-print client_stub.h2()
-print client_stub.h3()
+K=100
+state = random.randint(0,100)%K
+
+def obtain_lock():
+	x = open('state', 'r+')
+	fcntl.flock(x, fcntl.LOCK_EX)
+	return x
+
+def release_lock(x):
+	fcntl.flock(x,fcntl.LOCK_U)
+	x.close()
+
+
+x=obtain_lock()
+x.write(str(state))
+release_lock(x)
+
+while True:
+	predessor_state = client_stub.get_value()
+	x=obtain_lock()
+	state = int(x.read().strip())
+	if system_number == 0:
+		if state == predessor_state:
+			state = (state +1)%K
+	else:
+		if state != predessor_state:
+			state = predessor_state
+	x.seek(0)
+	x.write(str(state))
+	x.truncate()
+	release_lock(x)
+
+
+
+
+
 

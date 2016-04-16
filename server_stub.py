@@ -40,8 +40,8 @@ TCP_IP = "0.0.0.0"
 TCP_PORT = 12346
 
 
-publish_function_list=['f1', 'f2', 'f3', 'g1', 'g2', 'g3', 'h1', 'h2', 'h3']
-all_function_list=['f2', 'h3', 'h2', 'g3', 'g2', 'h1', 'g1', 'f1', 'f3']
+publish_function_list=[]
+all_function_list=['get_value']
 
 if len(sys.argv) == 2:
     Name_server_ip = sys.argv[1]
