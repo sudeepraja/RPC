@@ -22,7 +22,10 @@ def generate_client_stub(client_stub_file,f):
 		exit(0)
 
 	dictionary_string = ["'"+f+"':"+f for f in arguments]
-	print >>client_stub_file, "\t"+"data=json.dumps({"+", ".join(dictionary_string)+"})"
+	if len(arguments)!=0:
+		print >>client_stub_file, "\t"+"data=json.dumps({"+", ".join(dictionary_string)+"})"
+	else:
+		print >>client_stub_file, "\t"+"data=json.dumps('')"
 	print >>client_stub_file, "\t"+'return make_rpc_call(data,ip,"'+function_name+'")'
 	print >>client_stub_file, "\n\n"
 
@@ -110,7 +113,10 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		x = json.loads(data)
 		if self.headers["Function"] in dir(server):
 			try:
-				res = getattr(server, self.headers["Function"])(**x)
+				if len(x)!=0:
+					res = getattr(server, self.headers["Function"])(**x)
+				else:
+					res = getattr(server, self.headers["Function"])()				
 				self.send_response(200)
 			except Exception as e:
 				res = traceback.format_exc().splitlines()[-1]

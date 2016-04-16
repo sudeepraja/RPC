@@ -45,7 +45,7 @@ def make_rpc_call(data,ip,func_name):
 	return answer
 
 def get_prev(  ip):
-	data=json.dumps({})
+	data=json.dumps('')
 	return make_rpc_call(data,ip,"get_prev")
 
 
