@@ -1,4 +1,4 @@
-
+#10.5.16.186
 import json
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from SocketServer import ForkingMixIn
@@ -15,7 +15,10 @@ class ThreadedHTTPRequestHandler(BaseHTTPRequestHandler):
 		x = json.loads(data)
 		if self.headers["Function"] in dir(server):
 			try:
-				res = getattr(server, self.headers["Function"])(**x)
+				if len(x)!=0:
+					res = getattr(server, self.headers["Function"])(**x)
+				else:
+					res = getattr(server, self.headers["Function"])()				
 				self.send_response(200)
 			except Exception as e:
 				res = traceback.format_exc().splitlines()[-1]

@@ -3,8 +3,8 @@ import sys
 import random
 K = 100
 
-prev = input()
-curr = int(input())
+prev = sys.argv[1]
+curr = int(sys.argv[2])
 
 state = random.randint(0,99) 
 
