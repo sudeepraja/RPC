@@ -44,17 +44,9 @@ def make_rpc_call(data,ip,func_name):
 	conn.close()
 	return answer
 
-def double( p1,ip=None ):
-	if ip==None:
-		ip=ask_name_server("double")
-	data=json.dumps({'p1':p1})
-	return make_rpc_call(data,ip,"double")
-
-
-
-def abs( p1, p2, p3,ip):
-	data=json.dumps({'p1':p1, 'p2':p2, 'p3':p3})
-	return make_rpc_call(data,ip,"abs")
+def get_prev(  ip):
+	data=json.dumps({})
+	return make_rpc_call(data,ip,"get_prev")
 
 
 

@@ -6,14 +6,16 @@ def generate_client_stub(client_stub_file,f):
 	pub = f[0]
 	function_name = f[1]
 	arguments = f[2:]
-
+	comma = ", "
+	if len(arguments)==0:
+		comma=" "
 	if pub == "publish":
-		print >>client_stub_file, "def "+function_name+"( "+", ".join(arguments)+",ip=None ):"
+		print >>client_stub_file, "def "+function_name+"( "+", ".join(arguments)+comma+"ip=None ):"
 		print >>client_stub_file, "\t"+'if ip==None:'
 		print >>client_stub_file, "\t\t"+'ip=ask_name_server("'+function_name+'")'
 
 	elif pub == "nopublish":
-		print >>client_stub_file, "def "+function_name+"( "+", ".join(arguments)+",ip):"
+		print >>client_stub_file, "def "+function_name+"( "+", ".join(arguments)+comma+"ip):"
 
 	else:
 		print "Error, need to specify publish or unpublih"
@@ -69,7 +71,7 @@ def make_rpc_call(data,ip,func_name):
 		conn.close()
 		sys.exit(0)
 	elif status == 400:
-		print traceback.format_stack()
+		traceback.print_stack()
 		print json.loads(response.read())
 		conn.close()
 		sys.exit(0)
