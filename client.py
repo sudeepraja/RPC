@@ -1,23 +1,16 @@
+
 import client_stub
 import sys
-import random
-K = 100
+if len(sys.argv) == 2:
+	client_stub.name_server = sys.argv[1]
 
-prev = sys.argv[1]
-curr = int(sys.argv[2])
+print client_stub.f1(3,4)
+print client_stub.f2(3,4)
+print client_stub.f3(3,4)
+print client_stub.g1(3,4,5)
+print client_stub.g2(3,4,5)
+print client_stub.g3(3,4,5)
+print client_stub.h1()
+print client_stub.h2()
+print client_stub.h3()
 
-state = random.randint(0,99) 
-
-while True:
-	prev_state = client_stub.get_prev(prev)
-	print state,prev_state
-	if curr == 0:
-		if prev_state==state:
-			print "Privilege"
-			state = (state+1)%K
-			print state,prev_state
-	else:
-		if prev_state!=state:
-			print "Privilege"
-			state = prev
-			print state,prev_state
