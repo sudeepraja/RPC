@@ -8,7 +8,7 @@ prev_ip = sys.argv[1]
 system_number = int(sys.argv[2])
 
 K=100
-state = 70%K
+state = random.randint(0,100)%K
 
 def obtain_lock():
 	x = open('state', 'r+')
