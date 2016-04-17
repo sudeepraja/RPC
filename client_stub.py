@@ -56,18 +56,18 @@ def f2( p1, p2, p3, ip):
 
 
 
-def f3( p1, p2, ip=None ):
+def f3( p1, ip=None ):
 	if ip==None:
 		ip=ask_name_server("f3")
-	data=json.dumps({'p1':p1, 'p2':p2})
+	data=json.dumps({'p1':p1})
 	return make_rpc_call(data,ip,"f3")
 
 
 
-def f4( p1, p2, ip=None ):
+def f4(  ip=None ):
 	if ip==None:
 		ip=ask_name_server("f4")
-	data=json.dumps({'p1':p1, 'p2':p2})
+	data=json.dumps('')
 	return make_rpc_call(data,ip,"f4")
 
 
