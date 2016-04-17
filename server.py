@@ -1,17 +1,16 @@
-import fcntl
-def obtain_lock():
-	x = open('state', 'r+')
-	fcntl.flock(x, fcntl.LOCK_EX)
-	return x
+def f1( p1, p2 ):
+	return p1*p2
 
-def release_lock(x):
-	fcntl.flock(x,fcntl.LOCK_UN)
-	x.close()
 
-def get_value():
-	x=obtain_lock()
-	state = int(x.read().strip())
-	release_lock(x)
-	return state
+def f2( p1, p2, p3 ):
+	pass
+
+
+def f3( p1, p2 ):
+	pass
+
+
+def f4( p1, p2 ):
+	pass
 
 
